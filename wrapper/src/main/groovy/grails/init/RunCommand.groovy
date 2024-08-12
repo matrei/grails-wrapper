@@ -1,8 +1,9 @@
 package grails.init
 
-import org.springframework.boot.cli.compiler.grape.AetherGrapeEngine
-import org.springframework.boot.cli.compiler.grape.AetherGrapeEngineFactory
+
 import org.springframework.boot.cli.compiler.grape.DependencyResolutionContext
+import org.springframework.boot.cli.compiler.grape.MavenResolverGrapeEngine
+import org.springframework.boot.cli.compiler.grape.MavenResolverGrapeEngineFactory
 import org.springframework.boot.cli.compiler.grape.RepositoryConfiguration
 
 /**
@@ -10,17 +11,25 @@ import org.springframework.boot.cli.compiler.grape.RepositoryConfiguration
  */
 class RunCommand {
 
+    static final String DEFAULT_GRAILS_SHELL_VERSION = '6.1.2'
+
     static void main(String[] args) {
 
         Properties props = new Properties()
         String grailsVersion
+        String grailsShellVersion
         String groovyVersion
         try {
             props.load(new FileInputStream("gradle.properties"))
             grailsVersion = props.getProperty("grailsVersion")
+            grailsShellVersion = props.getProperty("grailsShellVersion")
             groovyVersion = props.getProperty("groovyVersion")
         } catch (IOException e) {
             throw new RuntimeException("Could not determine grails version due to missing properties file")
+        }
+
+        if(!grailsShellVersion) {
+            grailsShellVersion = DEFAULT_GRAILS_SHELL_VERSION
         }
 
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(RunCommand.classLoader)
@@ -30,8 +39,14 @@ class RunCommand {
             repositoryConfigurations.add(new RepositoryConfiguration("JFrog OSS snapshot repo", new URI("https://oss.jfrog.org/oss-snapshot-local"), true))
         }
 
-        AetherGrapeEngine grapeEngine = AetherGrapeEngineFactory.create(groovyClassLoader, repositoryConfigurations, new DependencyResolutionContext(), false)
-        grapeEngine.grab([:], [group: "org.grails", module: "grails-shell", version: grailsVersion])
+        MavenResolverGrapeEngine grapeEngine = MavenResolverGrapeEngineFactory.create(groovyClassLoader, repositoryConfigurations, new DependencyResolutionContext(), false)
+        try {
+            grapeEngine.grab([:], [group: "org.grails", module: "grails-shell", version: grailsVersion])
+        }
+        catch(dependencyResolutionException){
+            // Try grails shell version from gradle.properties or default
+            grapeEngine.grab([:], [group: "org.grails", module: "grails-shell", version: grailsShellVersion])
+        }
 
         ClassLoader previousClassLoader = Thread.currentThread().contextClassLoader
         Thread.currentThread().setContextClassLoader(groovyClassLoader)
