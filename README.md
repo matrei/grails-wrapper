@@ -27,5 +27,6 @@ Release Process
 - The release version will be installed locally by grails-wrapper.jar, latest is only used when release is not present
 
 
+
     <latest>6.0.1-SNAPSHOT</latest>
     <release>6.0.0</release>
