@@ -6,18 +6,13 @@ buildscript {
         mavenCentral()
         maven { url "https://repo.grails.org/grails/core" }
         maven { url "https://plugins.gradle.org/m2/" }
-        if (groovyVersion.endsWith('-SNAPSHOT')) {
-            maven {
-                name 'JFrog OSS snapshot repo'
-                url 'https://oss.jfrog.org/oss-snapshot-local/'
-            }
-        }
     }
     dependencies {
-        classpath "org.grails:grails-gradle-plugin:$grailsGradlePluginVersion"
-        classpath 'io.spring.gradle:dependency-management-plugin:1.1.6'
-        classpath "io.github.gradle-nexus:publish-plugin:2.0.0"
-        classpath "com.bmuschko:gradle-nexus-plugin:2.3.1"
+        classpath platform("org.grails:grails-bom:$grailsVersion")
+        classpath "org.grails:grails-gradle-plugin"
+        classpath "io.spring.gradle:dependency-management-plugin"
+        classpath "io.github.gradle-nexus:publish-plugin:$nexusPublishPluginVersion"
+        classpath "com.bmuschko:gradle-nexus-plugin:$gradleNexusPluginVersion"
     }
 }
 
@@ -78,7 +73,7 @@ configurations {
     all {
         resolutionStrategy.dependencySubstitution {
             //update fields plugin used by scaffolding
-            substitute(module("org.codehaus.plexus:plexus-sec-dispatcher:2.0")).using(module("org.sonatype.plexus:plexus-sec-dispatcher:1.4"))
+            substitute(module("org.codehaus.plexus:plexus-sec-dispatcher:2.0")).using(module("org.sonatype.plexus:plexus-sec-dispatcher:$plexusSecDispatcherVersion"))
         }
     }
 }
@@ -86,20 +81,15 @@ configurations {
 repositories {
     mavenCentral()
     maven { url "https://repo.grails.org/grails/core" }
-    if (groovyVersion.endsWith('-SNAPSHOT')) {
-        maven {
-            name 'JFrog OSS snapshot repo'
-            url 'https://oss.jfrog.org/oss-snapshot-local/'
-        }
-    }
 }
 
 dependencies {
-    implementation "org.apache.groovy:groovy:$groovyVersion"
-    implementation "org.springframework.boot:spring-boot-cli:$springBootVersion"
-    implementation "org.apache.groovy:groovy-ant:$groovyVersion"
-    implementation "org.grails:grails-shell:$grailsShellVersion"
-    implementation "org.apache.groovy:groovy-templates:$groovyVersion"
+    implementation platform("org.grails:grails-bom:$grailsVersion")
+    implementation "org.apache.groovy:groovy"
+    implementation "org.springframework.boot:spring-boot-cli"
+    implementation "org.apache.groovy:groovy-ant"
+    implementation "org.grails:grails-shell"
+    implementation "org.apache.groovy:groovy-templates"
 }
 
 jar {
